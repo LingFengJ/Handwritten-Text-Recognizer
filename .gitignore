@@ -1,0 +1,15 @@
+# Ignore temporary files
+*.tmp
+*.log
+
+# Ignore build artifacts
+/build
+/dist
+
+config.json
+credentials.txt
+
+data/**
+runs/
+__pycache__/
+
