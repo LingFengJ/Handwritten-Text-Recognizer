@@ -3,6 +3,8 @@ from typing import Tuple
 
 import cv2
 import numpy as np
+# import torchvision
+# import torch
 
 
 
@@ -15,7 +17,7 @@ class Preprocessor:
         self.augment = augmentation
         self.vocab = vocab
     
-    def __call__(self, img:str, label:str, max_len : int = 32):
+    def __call__(self, img, label:str, max_len : int = 32):
         # img = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
         img, label = self.preprocess_img(img, label)
         label = self.label_indexer(self.vocab, label)
@@ -53,23 +55,44 @@ class Preprocessor:
         # # Truncate text label
         # text = self._truncate_label(text, max_text_len=32)
 
-        wt, ht = self.image_size
-        h, w = img.shape
-        f = min(wt / w, ht / h)
-        tx = (wt - w * f) / 2
-        ty = (ht - h * f) / 2
+        # wt, ht = self.image_size
+        # h, w = img.shape
+        # f = min(wt / w, ht / h)
+        # tx = (wt - w * f) / 2
+        # ty = (ht - h * f) / 2
 
-        # map image into target image
-        M = np.float32([[f, 0, tx], [0, f, ty]])
-        target = np.ones([ht, wt]) * 255
-        img = cv2.warpAffine(img, M, dsize=(wt, ht), dst=target, borderMode=cv2.BORDER_TRANSPARENT)
+        # # map image into target image
+        # M = np.float32([[f, 0, tx], [0, f, ty]])
+        # target = np.ones([ht, wt]) * 255
+        # img = cv2.warpAffine(img, M, dsize=(wt, ht), dst=target, borderMode=cv2.BORDER_TRANSPARENT)
+         
+        target_width, target_height = self.image_size
+        height, width = img.shape[:2]
+        ratio = min(target_width / width, target_height / height)
+        new_w, new_h = int(width * ratio), int(height * ratio)
+
+        resized_image = cv2.resize(img, (new_w, new_h))
+        delta_w = target_width - new_w
+        delta_h =  target_height - new_h
+        top, bottom = delta_h//2, delta_h-(delta_h//2)
+        left, right = delta_w//2, delta_w-(delta_w//2)
+
+        padding_color = 0 # (0,0,0) if we are using rgb images
+
+        img = cv2.copyMakeBorder(resized_image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=padding_color)
+
+
+        # img = torch.from_numpy(img)
+        # print(f'before resizing img.size(): {img.size()}')
+        # img = torchvision.transforms.functional.resize(img, (32,356))
+        # print('torchvision transform is working')
+        #  img = img.numpy()
         
         return img, text
 
     @staticmethod
     def label_indexer(vocab: str, label: np.ndarray):
         """Convert label to index by vocab
-            vocab (typing.List[str]): List of characters in vocab
         """
         # def __call__(self, data: np.ndarray, label: np.ndarray):
         return np.array([vocab.index(l) for l in label if l in vocab])
