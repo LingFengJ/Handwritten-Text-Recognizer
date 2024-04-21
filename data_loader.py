@@ -32,14 +32,15 @@ class HandwritingDataset(Dataset):
         image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
         # ------------------------------------------------------
         # preprocess the image
+        # print(f'before resizing img.size(): {image.shape}')
         image, label_indices = self.data_preprocessor(image, label, self.max_len)
 
         if self.transform:
             image = self.transform(image)
         
         # disable these lines for visualizing the image in train.py
-        # image = torch.from_numpy(image).float()  # make it a tensor to enable it to be used by GPU
-        # image = image / 255  # Normalize pixel values to [0, 1]
+        image = torch.from_numpy(image).float()  # make it a tensor to enable it to be used by GPU
+        image = image / 255.0  # Normalize pixel values to [0, 1]
 
         return image, label_indices
 
