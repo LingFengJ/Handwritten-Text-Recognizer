@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 
 class ResidualBlock(nn.Module):
+    # some code is borrowed from the book "Dive into Deep Learning" by Aston Zhang, Zachary C. Lipton, Mu Li, and Alexander J. Smola
+    # this repository on CRNN: https://github.com/meijieru/crnn.pytorch/blob/master/README.md
+    # and this tutorial based on tensorflow keras: https://pylessons.com/handwritten-sentence-recognition
     def __init__(self, in_channels, out_channels, activation='relu', skip_conv=True, stride=2, dropout=0.2):
         super(ResidualBlock, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -74,9 +77,9 @@ class Model(nn.Module):
         x = self.layer8(x)
         x = self.layer9(x)
 
-        # x = x.reshape(x.size(0), -1, x.size(1))
+        x = x.reshape(x.size(0), -1, x.size(1))
 
-        x = x.reshape(x.size(0), x.size(-3) * x.size(-2), x.size(-1))
+        # x = x.reshape(x.size(0), x.size(-3) * x.size(-2), x.size(-1))
         # x = x.reshape(x.size(0), x.size(-3) * x.size(-2), x.size(-1))
         # b, c, h, w = x.size()
         # # print(f'x.size(): {x.size()}') 
@@ -93,6 +96,6 @@ class Model(nn.Module):
         x, _ = self.blstm2(x)
         x = self.dropout2(x)
         x = self.fc(x)
-        x = torch.log_softmax(x, dim=2)
+        x = torch.log_softmax(x, 2)
         return x
     

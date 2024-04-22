@@ -18,7 +18,8 @@ def label_to_strings(predictions, targets, chars):
     
     # transpose to get the shape (batch_size, seq_len) in order to get batch_size number of sequences
     # print('shape after taking argmax: ', argmax_preds.shape)
-    grouped_preds = [[k for k,_ in groupby(preds)] for preds in argmax_preds.T]
+    grouped_preds = [[k for k,_ in groupby(preds)] for preds in argmax_preds]
+    # grouped_preds = [[k for k,_ in groupby(preds)] for preds in argmax_preds.T] 
 
     # convert indexes to chars
     texts = ["".join([chars[k] for k in group if k < len(chars)]) for group in grouped_preds]
@@ -26,7 +27,7 @@ def label_to_strings(predictions, targets, chars):
 
     return texts, target_texts
 
-# Metrics
+# Metrics ------------------------------------------------------------------------------------------
 class Metric:
     def __init__(self):
         self.reset()
@@ -45,6 +46,7 @@ class CERMetric(Metric):
         super().__init__()
         self.vocab = vocab
         self.count = 0
+        self.total = 0
 
     def update(self, y_pred, y_true):
         # Assuming y_pred and y_true are 1D tensors
@@ -53,21 +55,30 @@ class CERMetric(Metric):
         y_pred = y_pred.detach().cpu().numpy()
         y_true = y_true.detach().cpu().numpy()
         y_pred, y_true = label_to_strings(y_pred, y_true, self.vocab)
-        # print(f'y_pred: {y_pred}')
-        # print(f'y_true: {y_true}')
+        print(f'y_pred: {y_pred} with shape: {len(y_pred)}')
+        print(f'y_true: {y_true} with shape: {len(y_true)}')
         value = cer(y_true, y_pred)
-        self.values.append(value.item())
+        print(f'the cer value is: {value} with value: {value.item()}')
+        self.total += value.item()
+        self.count += 1
+        # self.values.append(value.item())
+    
+    def result(self):
+        return self.total / self.count if self.count > 0 else 1
     
     def reset(self):
         self.values = []
+        self.total = 0
         value = 0
         self.count = 0
+
 
 class WERMetric(Metric):
     def __init__(self, vocab):
         super().__init__()
         self.vocab = vocab
         self.count = 0
+        self.total = 0
 
     def update(self, y_pred, y_true):
         # Assuming y_pred and y_true are 1D tensors
@@ -79,15 +90,21 @@ class WERMetric(Metric):
         y_pred, y_true = label_to_strings(y_pred, y_true, self.vocab)
         # print(f'y_pred: {y_pred}')
         # print(f'y_true: {y_true}')
-        value = wer(y_true, y_pred)
-        self.values.append(value.item())
+        value = wer(preds = y_true, target = y_pred)
+        # self.values.append(value.item())
+        self.total += value.item()
+        self.count += 1
+    
+    def result(self):
+        return self.total / self.count if self.count > 0 else 1
     
     def reset(self):
         self.values = []
+        self.total = 0
         value = 0
         self.count = 0
 
-# Callbacks
+# Callbacks ------------------------------------------------------------------------------------------
 class Callback:
     def step(self, metric_result):
         raise NotImplementedError
@@ -96,16 +113,17 @@ class EarlyStopping(Callback):
     def __init__(self, patience):
         self.patience = patience
         self.counter = 0
+        self.at_least = 0.5
         self.best_score = None
         self.stop = False
 
     def step(self, metric_result):
-        score = -metric_result
+        score = metric_result
         if self.best_score is None:
             self.best_score = score
-        elif score < self.best_score:
+        elif score >= self.best_score:
             self.counter += 1
-            if self.counter >= self.patience:
+            if self.counter >= self.patience and metric_result < self.at_least:
                 self.stop = True
         else:
             self.best_score = score
