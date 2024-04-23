@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Web Application</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav>
+        <ul>
+            <li><a href="#" onclick="showHome()">Home</a></li>
+            <li><a href="#" onclick="showConvertedFile()">Converted File</a></li>
+            <li><a href="#" onclick="showHistoricalConversions()">Historical Conversions</a></li>
+        </ul>
+    </nav>
+
+    <!-- Web application container -->
+    <div class="container" id="home-container">
+        <h1>OCR Web Application</h1>
+        <p>Select an image to perform OCR:</p>
+        <!-- Button group for "Choose File" and "Take Photo" buttons -->
+        <div class="btn-group">
+            <label for="file-input" class="upload-btn">Choose File</label>
+            <input type="file" id="file-input" accept="image/*">
+            <button class="camera-btn" onclick="openCamera()">Take Photo</button>
+        </div>
+        <!-- Button for capturing photo from camera -->
+        <button class="capture-btn" onclick="capturePhoto()">Capture</button>
+        <div id="output">
+            <p>Loaded image:</p>
+            <div id="loaded-text"></div>
+            <img id="uploaded-image" src="" alt="Uploaded Image">
+        </div>
+        <!-- Convert button for processing the uploaded image -->
+        <button id="convert-btn" onclick="convertImage()">Convert</button>
+    </div>
+
+    <!-- Converted file container -->
+    <div class="container" id="converted-file-container" style="display: none;">
+        <h1>OCR Web Application</h1>
+        <p>Overview of the converted result</p>
+        <div id="processed-text"></div>
+    </div>
+
+    <!--Historical conversions -->
+    <div class="container" id="historical-conversions-container" style="display: none;">
+        <h1>OCR Web Application</h1>
+        <p>Here you can find the previous strings you converted</p>
+        <div id="processed-texts"></div>
+    </div>
+
+    <script>
+        // Array to store processed strings
+        let processedStrings = [];
+        // Function to show the home container
+        function showHome() {
+            document.getElementById('home-container').style.display = 'block';
+            document.getElementById('converted-file-container').style.display = 'none';
+            document.getElementById('historical-conversions-container').style.display = 'none';
+        }
+
+        // Function to show the converted file container
+        function showConvertedFile() {
+            document.getElementById('home-container').style.display = 'none';
+            document.getElementById('converted-file-container').style.display = 'block';
+            document.getElementById('historical-conversions-container').style.display = 'none';
+        }
+
+        // Function to show the historical conversions container
+        function showHistoricalConversions() {
+            document.getElementById('home-container').style.display = 'none';
+            document.getElementById('converted-file-container').style.display = 'none';
+            document.getElementById('historical-conversions-container').style.display = 'block';
+
+            // Display processed strings in historical conversions
+            const processedTextsDiv = document.getElementById('processed-texts');
+            processedTextsDiv.innerHTML = ''; // Clear existing content
+
+            processedStrings.forEach((text, index) => {
+                const p = document.createElement('p');
+                p.textContent = `String ${index + 1}: ${text}`;
+                processedTextsDiv.appendChild(p);
+
+            })};
+    </script>
+    <script>
+        // JavaScript code for camera functionality
+        // Declare variables to store camera stream and video track
+        let stream;
+        let videoTrack;
+        // Create a new video element
+        const video = document.createElement('video');
+
+        // Function to open the camera and display video feed
+        async function openCamera() {
+            try {
+                // Attempt to access the user's camera
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Set the video source to the camera stream
+                video.srcObject = stream;
+                // Get the video track from the stream
+                videoTrack = stream.getVideoTracks()[0];
+
+                // Start playing the video
+                video.play();
+                // Append the video element to the container
+                document.querySelector('.container').appendChild(video);
+                // Display the "Capture" button
+                document.querySelector('.capture-btn').style.display = 'block';
+            } catch (err) {
+                alert('Error accessing camera');
+            }
+        }
+
+        // Function to capture a photo from the video feed
+        function capturePhoto() {
+            // Create a canvas element
+            const canvas = document.createElement('canvas');
+            // Get the 2D drawing context from the canvas
+            const ctx = canvas.getContext('2d');
+            // Set the canvas width and height to match the video dimensions
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Draw the current frame of the video onto the canvas
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            // Convert the canvas content to a data URL representing a JPEG image
+            const imageDataURL = canvas.toDataURL('image/jpeg');
+            // Stop the camera stream and remove the video element
+            stopCamera();
+
+            // Display the output section
+            document.getElementById('output').style.display = 'block';
+            // Set the source of the uploaded image to the captured photo
+            document.getElementById('uploaded-image').src = imageDataURL;
+            // Display placeholder text for loaded image
+            document.getElementById('loaded-text').textContent = " ";
+            
+            // Hide the "Capture" button
+            document.querySelector('.capture-btn').style.display = 'none';
+        }
+
+        // Function to stop the camera stream and remove the video element
+        function stopCamera() {
+            videoTrack.stop();
+            // Stop all tracks in the stream
+            stream.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
+            // Remove the video element from the DOM
+            video.remove();
+        }
+
+
+        // Function to convert the uploaded image
+        function convertImage() {
+            try {
+                const imgSrc = document.getElementById('uploaded-image').src;
+                if (!imgSrc || imgSrc === '' || imgSrc === 'data:,') {
+                    throw new Error("No image is loaded.");
+                }
+                // Convert image to base64 data URL
+                const base64Image = imgSrc.split(',')[1];
+
+                // Send image data to server-side script
+                fetch('/process_image', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ image_data: base64Image })
+                })
+                .then(response => response.text())
+                .then(data => {
+                    // Update DOM with processed string
+                    document.getElementById('processed-text').textContent = data;
+                    // Add processed string to the array
+                    processedStrings.push(data);
+                })
+                .catch(error => {
+                    alert("Error processing image. Please try again.");
+                });
+            } catch (error) {
+                alert("Error converting image. Please make sure an image is loaded.");
+            }
+            showConvertedFile()
+            }
+
+
+        // Event listener for file input change event
+        document.getElementById('file-input').addEventListener('change', function() {
+            const file = this.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                document.getElementById('output').style.display = 'block';
+                document.getElementById('uploaded-image').src = event.target.result;
+                // Here you can perform OCR on the uploaded image and display the label text
+                document.getElementById('loaded-text').textContent = "Image you loaded to perform OCR.";
+                // Hide the "Capture" button
+                document.querySelector('.capture-btn').style.display = 'none';
+            }
+
+            // Read the contents of the selected file as a data URL
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
