@@ -24,8 +24,16 @@ class Preprocessor:
         #label = self.label_padding(0, 32, label)
         label = self.label_padding(len(self.vocab), max_len, label)
         if self.augment:
-            pass  # here we should apply randomsharpening, (randomnoise), randomblur, randombrightness
-
+            # here we should apply randomsharpening, (randomnoise), randomblur, randombrightness
+            if np.random.rand() < 0.5:
+                random_odd = np.random.randint(1,4) * 2 + 1
+                img = cv2.GaussianBlur(img, (random_odd, random_odd), 0)
+            if np.random.rand() < 0.25:
+                brightness = np.random.randint(0,60)
+                img = cv2.add(img, brightness)
+            if np.random.rand() < 0.25:
+                kernel = np.ones((5,5),np.uint8)
+                img = cv2.erode(img, kernel, iterations = 1)
         return img, label
 
     @staticmethod
