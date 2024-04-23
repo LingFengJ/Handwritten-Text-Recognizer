@@ -1,0 +1,185 @@
+
+/* Reset default margin and padding */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+/* Styling for navigation bar */
+nav {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+nav ul li {
+    display: inline;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 15px;
+    border-radius: 1px;
+    transition: background-color 0.3s ease;
+}
+
+nav ul li a:hover {
+    background-color: #0056b3;
+}
+
+/* Center the web application container */
+.container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    max-width: 800px; /* Set maximum width for better readability on larger screens */
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Heading and paragraph styles */
+h1 {
+    color: #333;
+    margin-top: 0;
+}
+
+p {
+    color: #666;
+}
+
+/* Styling for buttons */
+.btn {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+/* File input styles */
+input[type="file"] {
+    display: none;
+}
+
+/* Responsive styles */
+@media only screen and (max-width: 600px) {
+    .container {
+        width: 80%;
+    }
+}
+
+/* CSS styles for upload and camera buttons */
+.upload-btn, .camera-btn {
+    background-color: #007bff;
+    color: #fff;
+    border: 5px solid white;
+    padding: 12px 24px;
+    border-radius: 16px;
+    cursor: pointer; /* Change cursor to pointer on hover */
+    transition: background-color 0.3s ease; /* Add transition effect */
+    margin-left: 10px solid transparent;
+    font-size: 16px; /* Set button text size */
+}
+
+/* Hover effect for buttons */
+.upload-btn:hover, .camera-btn:hover {
+    background-color: #0056b3;
+}
+
+/* CSS styles for button group */
+.btn-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+/* CSS styles for capture button */
+.capture-btn {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    display: none; /* Hide button by default */
+    position: absolute; /* Position absolute for fixed positioning */
+    bottom: 40px;
+    left: 50%; /* Align button to center horizontally */
+    transform: translateX(-50%); /* Center horizontally */
+    z-index: 1; /* Set z-index to ensure button is above other content */
+    font-size: 16px;
+}
+
+/* Hover effect for capture button */
+.capture-btn:hover {
+    background-color: #c82333;
+}
+
+ /* CSS styles for output section */
+#output {
+    margin-top: 50px;
+    display: none; /* Hide output section by default */
+}
+/* CSS styles for uploaded image */
+#output img {
+    max-width: 100%;
+    margin-top: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.3s ease;
+}
+
+
+/* Hover effect for uploaded image */
+#output img:hover {
+    opacity: 0.9;
+}
+/* CSS styles for convert button */
+#convert-btn {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+    font-size: 16px;
+}
+
+/* Hover effect for convert button */
+#convert-btn:hover {
+    background-color: #218838;
+}
