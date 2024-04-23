@@ -17,12 +17,12 @@ from torch.utils.data import DataLoader
 from preprocessor import Preprocessor
 
 class HandwritingDataset(Dataset):
-    def __init__(self, data, vocabulary="", max_len = 0, transform=None):
+    def __init__(self, data, vocabulary="", max_len = 0, transform=None, augmentations=False):
         self.data = data
         self.transform = transform
         self.vocab = vocabulary
         self.max_len = max_len
-        self.data_preprocessor = Preprocessor(image=None, vocab=self.vocab)
+        self.data_preprocessor = Preprocessor(image=None, vocab=self.vocab, augmentation=augmentations)
 
     def __len__(self):
         return len(self.data)
