@@ -23,8 +23,17 @@ class Preprocessor:
         label = self.label_indexer(self.vocab, label)
         #label = self.label_padding(0, 32, label)
         label = self.label_padding(len(self.vocab), max_len, label)
-        if self.augment:
-            pass  # here we should apply randomsharpening, (randomnoise), randomblur, randombrightness
+        # kernel = np.ones((5,5),np.float32)/25
+        # dst = cv.filter2D(img,-1,kernel)
+        # if self.augment:
+        # kernel = np.ones((2,2),np.float32)/20
+        img = cv2.GaussianBlur(img, (3, 3), 0)
+        # img = cv2.Laplacian(img, cv2.CV_16S, ksize=3)
+        img = cv2.convertScaleAbs(img, alpha=2.2, beta=100)
+
+
+
+            
 
         return img, label
 

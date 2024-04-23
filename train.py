@@ -19,12 +19,12 @@ from data_loader import HandwritingDataset
 
 # import various models to test
 from model1 import Model as Model1
-from model2 import Network as Model2
-from crnn import CRNN
+# from model2 import Network as Model2
+# from crnn import CRNN
 
 import torch.optim as optim
 import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
 from torch.autograd import Variable
 from torch.nn import CTCLoss
 # from early_stopping import EarlyStopping
@@ -32,7 +32,7 @@ from torch.nn import CTCLoss
 # from train_logger import TrainLogger
 # from reduce_lr_on_plateau import ReduceLROnPlateau
 # from model2onnx import Model2onnx
-from metric_plus_callback import WERMetric, CERMetric, EarlyStopping, ModelCheckpoint
+# from metric_plus_callback import WERMetric, CERMetric, EarlyStopping, ModelCheckpoint
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 def set_device():
@@ -202,147 +202,147 @@ def main():
             print(images[i].shape, temp_labels[i])
         plt.show()
         #--------------------------end testing--------------------------------
-    # testing_images()  # images are now tensors with torch.Size([32, 256])
+    testing_images()  # images are now tensors with torch.Size([32, 256])
 
-    def github_dataprovider():
-        # Code from github: uses mltu library 
-        # # Create a data provider for the dataset
-        # data_provider = DataProvider(
-        #     dataset=dataset,
-        #     skip_validation=True,
-        #     batch_size=configs.batch_size,
-        #     data_preprocessors=[ImageReader()],
-        #     transformers=[
-        #         ImageResizer(configs.width, configs.height, keep_aspect_ratio=True),
-        #         LabelIndexer(configs.vocab),
-        #         LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab)),
-        #         ],
-            # )
+    # def github_dataprovider():
+    #     # Code from github: uses mltu library 
+    #     # # Create a data provider for the dataset
+    #     # data_provider = DataProvider(
+    #     #     dataset=dataset,
+    #     #     skip_validation=True,
+    #     #     batch_size=configs.batch_size,
+    #     #     data_preprocessors=[ImageReader()],
+    #     #     transformers=[
+    #     #         ImageResizer(configs.width, configs.height, keep_aspect_ratio=True),
+    #     #         LabelIndexer(configs.vocab),
+    #     #         LabelPadding(max_word_length=configs.max_text_length, padding_value=len(configs.vocab)),
+    #     #         ],
+    #         # )
 
-        # Split the dataset into training and validation sets
-        # train_data_provider, val_data_provider = data_provider.split(split = 0.9)
-        pass
+    #     # Split the dataset into training and validation sets
+    #     # train_data_provider, val_data_provider = data_provider.split(split = 0.9)
+    #     pass
     
-    # using model1
-    # input_dimension = (32,256,1) # Height, Width, Channels
-    input_dimension = 1
-    output_dimension = len(vocab) 
-    # learning_rate = 0.0005
-    learning_rate = 0.002
-    model = Model1(input_dimension, output_dimension, activation="leaky_relu", dropout=0.2)
+    # # using model1
+    # # input_dimension = (32,256,1) # Height, Width, Channels
+    # input_dimension = 1
+    # output_dimension = len(vocab) 
+    # # learning_rate = 0.0005
+    # learning_rate = 0.002
+    # model = Model1(input_dimension, output_dimension, activation="leaky_relu", dropout=0.2)
 
-    blank = len(vocab)
-    criterion = CTCLoss(blank=len(vocab), reduction='mean')
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    train_epochs = 1
-    model_path = os.path.join("Results", datetime.strftime(datetime.now(), "%Y%m%d%H%M"))
-    model = model.to(device)
+    # blank = len(vocab)
+    # criterion = CTCLoss(blank=len(vocab), reduction='mean')
+    # optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # train_epochs = 1
+    # model_path = os.path.join("Results", datetime.strftime(datetime.now(), "%Y%m%d%H%M"))
+    # model = model.to(device)
 
-    # # Define metrics
-    # cer_metric = CERMetric(vocabulary=vocab)
-    # wer_metric = WERMetric(vocabulary=vocab)
+    # # # Define metrics
+    # # cer_metric = CERMetric(vocabulary=vocab)
+    # # wer_metric = WERMetric(vocabulary=vocab)
 
-    # # Define callbacks
-    # earlystopper = EarlyStopping(monitor="val_CER", patience=20, verbose=1, mode="min") # stop training if the metric has stopped improving
-    ## checkpoint saves the model after every epoch
-    #checkpoint = ModelCheckpoint(f"{model_path}/model.pt", monitor="val_CER", verbose=1, save_best_only=True, mode="min")
-    checkpoint = ModelCheckpoint(model, f"{model_path}/model.pt")
-    # trainLogger = TrainLogger(model_path) # logs training statistics
-    tb_callback = SummaryWriter(f"{model_path}/logs")
-    # # reduce learning rate on plateau when a metric has stopped improving
-    # reduceLROnPlat = ReduceLROnPlateau(monitor="val_CER", factor=0.9, min_delta=1e-10, patience=5, verbose=1, mode="auto")
-    # # convert model to onnx format, a platform-independent format for models
-    # model2onnx = Model2onnx(f"{configs.model_path}/model.h5")
+    # # # Define callbacks
+    # # earlystopper = EarlyStopping(monitor="val_CER", patience=20, verbose=1, mode="min") # stop training if the metric has stopped improving
+    # ## checkpoint saves the model after every epoch
+    # #checkpoint = ModelCheckpoint(f"{model_path}/model.pt", monitor="val_CER", verbose=1, save_best_only=True, mode="min")
+    # checkpoint = ModelCheckpoint(model, f"{model_path}/model.pt")
+    # # trainLogger = TrainLogger(model_path) # logs training statistics
+    # tb_callback = SummaryWriter(f"{model_path}/logs")
+    # # # reduce learning rate on plateau when a metric has stopped improving
+    # # reduceLROnPlat = ReduceLROnPlateau(monitor="val_CER", factor=0.9, min_delta=1e-10, patience=5, verbose=1, mode="auto")
+    # # # convert model to onnx format, a platform-independent format for models
+    # # model2onnx = Model2onnx(f"{configs.model_path}/model.h5")
 
-    # Train the model
-    # for epoch in range(train_epochs):
-    for epoch in tqdm(range(train_epochs)):
-        model.train(True) # Set the model to training mode
-        # for i, (inputs, targets) in enumerate(train_loader):
-        for inputs, targets in tqdm(train_loader):
-            inputs = inputs.unsqueeze(1)
-            inputs, targets = inputs.to(device), targets.to(device)
-            # print(inputs.shape)
-            inputs, targets = Variable(inputs), Variable(targets)
-            optimizer.zero_grad()
-            outputs = model(inputs)
+    # # Train the model
+    # # for epoch in range(train_epochs):
+    # for epoch in tqdm(range(train_epochs)):
+    #     model.train(True) # Set the model to training mode
+    #     # for i, (inputs, targets) in enumerate(train_loader):
+    #     for inputs, targets in tqdm(train_loader):
+    #         inputs = inputs.unsqueeze(1)
+    #         inputs, targets = inputs.to(device), targets.to(device)
+    #         # print(inputs.shape)
+    #         inputs, targets = Variable(inputs), Variable(targets)
+    #         optimizer.zero_grad()
+    #         outputs = model(inputs)
 
-            # Compute the lengths of the input and target sequences
-            # input_lengths = torch.full(size=(inputs.size(0),), fill_value=outputs.size(1), dtype=torch.long)
-            # target_lengths = torch.full(size=(targets.size(0),), fill_value=targets.size(1), dtype=torch.long)
+    #         # Compute the lengths of the input and target sequences
+    #         # input_lengths = torch.full(size=(inputs.size(0),), fill_value=outputs.size(1), dtype=torch.long)
+    #         # target_lengths = torch.full(size=(targets.size(0),), fill_value=targets.size(1), dtype=torch.long)
 
-            # Remove padding and blank tokens from target
-            target_lengths = torch.sum(targets != blank, dim=1)
-            using_dtype = torch.int32 if max(target_lengths) <= 256 else torch.int64
-            device = outputs.device
+    #         # Remove padding and blank tokens from target
+    #         target_lengths = torch.sum(targets != blank, dim=1)
+    #         using_dtype = torch.int32 if max(target_lengths) <= 256 else torch.int64
+    #         device = outputs.device
 
-            target_unpadded = targets[targets != blank].view(-1).to(using_dtype)
+    #         target_unpadded = targets[targets != blank].view(-1).to(using_dtype)
 
-            outputs = outputs.permute(1, 0, 2)  # (sequence_length, batch_size, num_classes)
-            output_lengths = torch.full(size=(outputs.size(1),), fill_value=outputs.size(0), dtype=using_dtype).to(device)
+    #         outputs = outputs.permute(1, 0, 2)  # (sequence_length, batch_size, num_classes)
+    #         output_lengths = torch.full(size=(outputs.size(1),), fill_value=outputs.size(0), dtype=using_dtype).to(device)
 
-            loss = criterion(outputs, target_unpadded, output_lengths, target_lengths.to(using_dtype))
+    #         loss = criterion(outputs, target_unpadded, output_lengths, target_lengths.to(using_dtype))
 
-            # Compute the CTC loss
-            #loss = torch.nn.functional.ctc_loss(outputs.log_softmax(2), targets, input_lengths, target_lengths)
+    #         # Compute the CTC loss
+    #         #loss = torch.nn.functional.ctc_loss(outputs.log_softmax(2), targets, input_lengths, target_lengths)
             
-            # loss = criterion(outputs, targets, input_lengths, target_lengths)
-            loss.backward()
-            optimizer.step()
+    #         # loss = criterion(outputs, targets, input_lengths, target_lengths)
+    #         loss.backward()
+    #         optimizer.step()
 
-            # Log metrics
-            # cer_metric.update(outputs, targets)
-            # wer_metric.update(outputs, targets)
-            tb_callback.add_scalar('Loss/train', loss.item(), epoch)
-            # tb_callback.add_scalar('CER/train', cer_metric.result(), epoch)
-            # tb_callback.add_scalar('WER/train', wer_metric.result(), epoch)
+    #         # Log metrics
+    #         # cer_metric.update(outputs, targets)
+    #         # wer_metric.update(outputs, targets)
+    #         tb_callback.add_scalar('Loss/train', loss.item(), epoch)
+    #         # tb_callback.add_scalar('CER/train', cer_metric.result(), epoch)
+    #         # tb_callback.add_scalar('WER/train', wer_metric.result(), epoch)
 
-        # Validation
-        model.eval()
-        with torch.no_grad():
-            for i, (inputs, targets) in enumerate(val_loader):
-                inputs = inputs.unsqueeze(1) 
-                inputs, targets = inputs.to(device), targets.to(device)
-                inputs, targets = Variable(inputs), Variable(targets)
-                outputs = model(inputs)
-                target_lengths = torch.sum(targets != blank, dim=1)
-                using_dtype = torch.int32 if max(target_lengths) <= 256 else torch.int64
-                device = outputs.device
-                target_unpadded = targets[targets != blank].view(-1).to(using_dtype)
-                outputs = outputs.permute(1, 0, 2)  # (sequence_length, batch_size, num_classes)
-                output_lengths = torch.full(size=(outputs.size(1),), fill_value=outputs.size(0), dtype=using_dtype).to(device)
-                loss = criterion(outputs, target_unpadded, output_lengths, target_lengths.to(using_dtype))
-                # loss = criterion(outputs, targets)
+    #     # Validation
+    #     model.eval()
+    #     with torch.no_grad():
+    #         for i, (inputs, targets) in enumerate(val_loader):
+    #             inputs = inputs.unsqueeze(1) 
+    #             inputs, targets = inputs.to(device), targets.to(device)
+    #             inputs, targets = Variable(inputs), Variable(targets)
+    #             outputs = model(inputs)
+    #             target_lengths = torch.sum(targets != blank, dim=1)
+    #             using_dtype = torch.int32 if max(target_lengths) <= 256 else torch.int64
+    #             device = outputs.device
+    #             target_unpadded = targets[targets != blank].view(-1).to(using_dtype)
+    #             outputs = outputs.permute(1, 0, 2)  # (sequence_length, batch_size, num_classes)
+    #             output_lengths = torch.full(size=(outputs.size(1),), fill_value=outputs.size(0), dtype=using_dtype).to(device)
+    #             loss = criterion(outputs, target_unpadded, output_lengths, target_lengths.to(using_dtype))
+    #             # loss = criterion(outputs, targets)
 
-                # Log metrics
-                # cer_metric.update(outputs, targets)
-                # wer_metric.update(outputs, targets)
-                tb_callback.add_scalar('Loss/val', loss.item(), epoch)
-                # tb_callback.add_scalar('CER/val', cer_metric.result(), epoch)
-                # tb_callback.add_scalar('WER/val', wer_metric.result(), epoch)
+    #             # Log metrics
+    #             # cer_metric.update(outputs, targets)
+    #             # wer_metric.update(outputs, targets)
+    #             tb_callback.add_scalar('Loss/val', loss.item(), epoch)
+    #             # tb_callback.add_scalar('CER/val', cer_metric.result(), epoch)
+    #             # tb_callback.add_scalar('WER/val', wer_metric.result(), epoch)
 
                 
-        # Call callbacks (for each epoch)
-        # earlystopper.step(cer_metric.result())
-        # checkpoint.step(cer_metric.result())
-        # trainLogger.step(cer_metric.result())
-        # reduceLROnPlat.step(cer_metric.result())
-        # model2onnx.step(cer_metric.result())
+    #     # Call callbacks (for each epoch)
+    #     # earlystopper.step(cer_metric.result())
+    #     # checkpoint.step(cer_metric.result())
+    #     # trainLogger.step(cer_metric.result())
+    #     # reduceLROnPlat.step(cer_metric.result())
+    #     # model2onnx.step(cer_metric.result())
 
-        # Reset metrics
-        # cer_metric.reset()
-        # wer_metric.reset()
+    #     # Reset metrics
+    #     # cer_metric.reset()
+    #     # wer_metric.reset()
         
-        # Save the model
-        # torch.save(model.state_dict(), os.path.join(model_path, 'model.pt'))
+    #     # Save the model
+    #     # torch.save(model.state_dict(), os.path.join(model_path, 'model.pt'))
         
 
-    # # Save training and validation datasets as csv files
-    # train_data_provider.to_csv(os.path.join(configs.model_path, "train.csv"))
-    # val_data_provider.to_csv(os.path.join(configs.model_path, "val.csv"))
+    # # # Save training and validation datasets as csv files
+    # # train_data_provider.to_csv(os.path.join(configs.model_path, "train.csv"))
+    # # val_data_provider.to_csv(os.path.join(configs.model_path, "val.csv"))
 
-    torch.save(model.state_dict(), os.path.join(model_path, 'model.pt'))
-    tb_callback.close()
+    # torch.save(model.state_dict(), os.path.join(model_path, 'model.pt'))
+    # tb_callback.close()
 
 
 
