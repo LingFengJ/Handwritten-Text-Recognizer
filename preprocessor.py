@@ -12,7 +12,8 @@ class Preprocessor:
     def __init__(self, image: np.ndarray, transform=None, augmentation=False, vocab=""):
         self.image = image
         self.transform = transform
-        self.image_size = (256, 32) 
+        # self.image_size = (256, 32) 
+        self.image_size = (512, 64)
         # self.image_size = (1408, 96) ## an alternative for the image size(we'll see based on training results)
         self.augment = augmentation
         self.vocab = vocab
@@ -25,15 +26,22 @@ class Preprocessor:
         label = self.label_padding(len(self.vocab), max_len, label)
         if self.augment:
             # here we should apply randomsharpening, (randomnoise), randomblur, randombrightness
-            if np.random.rand() < 0.5:
-                random_odd = np.random.randint(1,4) * 2 + 1
-                img = cv2.GaussianBlur(img, (random_odd, random_odd), 0)
+            # if np.random.rand() < 0.5:
+            #     random_odd = np.random.randint(1,3) * 2 + 1
+            #     img = cv2.GaussianBlur(img, (random_odd, random_odd), 0)
             if np.random.rand() < 0.25:
                 brightness = np.random.randint(0,60)
                 img = cv2.add(img, brightness)
             if np.random.rand() < 0.25:
-                kernel = np.ones((5,5),np.uint8)
+                random_odd = np.random.randint(1,3) * 2 + 1 # a random odd number between 3 and 5
+                kernel = np.ones((random_odd,random_odd),np.uint8)
                 img = cv2.erode(img, kernel, iterations = 1)
+            if np.random.rand() < 0.25:
+                sharpen_factor = 1 + np.random.rand()
+                kernel = np.array([[0, -1, 0], 
+                           [-1, sharpen_factor,-1], 
+                           [0, -1, 0]], dtype='float32')
+                img = cv2.filter2D(img, -1, kernel)
         return img, label
 
     @staticmethod
