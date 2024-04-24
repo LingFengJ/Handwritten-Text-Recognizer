@@ -49,7 +49,7 @@ class Preprocessor:
             #                [0, -1, 0]], dtype='float32')
             #     img = cv2.filter2D(img, -1, kernel)
             if np.random.rand() < 0.25:            
-                img = cv2.convertScaleAbs(img, alpha=3.0, beta=np.random.randint(0,35))
+                img = cv2.convertScaleAbs(img, alpha=2.2, beta=np.random.randint(0,35))
         return img, label
 
     @staticmethod
