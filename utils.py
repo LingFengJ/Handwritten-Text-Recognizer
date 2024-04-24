@@ -123,7 +123,8 @@ class EarlyStopping(Callback):
             self.best_score = score
         elif score >= self.best_score:
             self.counter += 1
-            if self.counter >= self.patience and metric_result < self.at_least:
+            # if self.counter >= self.patience and metric_result < self.at_least:
+            if self.counter >= self.patience:
                 self.stop = True
         else:
             self.best_score = score
