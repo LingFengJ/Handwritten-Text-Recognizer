@@ -1,0 +1,11 @@
+Make sure that the working enciroment is created and flask stalled properly in the destination folder
+Commands in powershell for windows
+
+Access the destination folder:
+cd C:\Users\liyuj\liyu_storage\ACSAI\AI_Lab\flask_env\OCR_WebApp
+
+Active enviroment: 
+.venv\Scripts\activate\
+
+run with the debugger the app.py:
+flask --app app run --debug

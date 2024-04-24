@@ -24,13 +24,19 @@ class Preprocessor:
         label = self.label_indexer(self.vocab, label)
         #label = self.label_padding(0, 32, label)
         label = self.label_padding(len(self.vocab), max_len, label)
+
         if self.augment:
+            # kernel = np.ones((5,5),np.float32)/25
+            # dst = cv.filter2D(img,-1,kernel)
+            # kernel = np.ones((2,2),np.float32)/20
+            # img = cv2.Laplacian(img, cv2.CV_16S, ksize=3)
+
             # here we should apply randomsharpening, (randomnoise), randomblur, randombrightness
             # if np.random.rand() < 0.5:
             #     random_odd = np.random.randint(1,3) * 2 + 1
             #     img = cv2.GaussianBlur(img, (random_odd, random_odd), 0)
             if np.random.rand() < 0.25:
-                brightness = np.random.randint(0,60)
+                brightness = np.random.randint(0,50)
                 img = cv2.add(img, brightness)
             if np.random.rand() < 0.25:
                 random_odd = np.random.randint(1,3) * 2 + 1 # a random odd number between 3 and 5
@@ -42,6 +48,8 @@ class Preprocessor:
                            [-1, sharpen_factor,-1], 
                            [0, -1, 0]], dtype='float32')
                 img = cv2.filter2D(img, -1, kernel)
+            if np.random.rand() < 0.25:            
+                img = cv2.convertScaleAbs(img, alpha=2.2, beta=np.random.randint(0,35))
         return img, label
 
     @staticmethod
