@@ -32,22 +32,22 @@ class Preprocessor:
             # img = cv2.Laplacian(img, cv2.CV_16S, ksize=3)
 
             # here we should apply randomsharpening, (randomnoise), randomblur, randombrightness
-            # if np.random.rand() < 0.5:
-            #     random_odd = np.random.randint(1,3) * 2 + 1
-            #     img = cv2.GaussianBlur(img, (random_odd, random_odd), 0)
+            if np.random.rand() < 0.25:
+                random_odd = np.random.randint(1,3) * 2 + 1
+                img = cv2.GaussianBlur(img, (random_odd, random_odd), 0)
             if np.random.rand() < 0.25:
                 brightness = np.random.randint(0,50)
                 img = cv2.add(img, brightness)
-            if np.random.rand() < 0.25:
-                random_odd = np.random.randint(1,3) * 2 + 1 # a random odd number between 3 and 5
-                kernel = np.ones((random_odd,random_odd),np.uint8)
-                img = cv2.erode(img, kernel, iterations = 1)
-            if np.random.rand() < 0.25:
-                sharpen_factor = 1 + np.random.rand()
-                kernel = np.array([[0, -1, 0], 
-                           [-1, sharpen_factor,-1], 
-                           [0, -1, 0]], dtype='float32')
-                img = cv2.filter2D(img, -1, kernel)
+            # if np.random.rand() < 0.25:
+            #     random_odd = np.random.randint(1,3) * 2 + 1 # a random odd number between 3 and 5
+            #     kernel = np.ones((random_odd,random_odd),np.uint8)
+            #     img = cv2.erode(img, kernel, iterations = 1)
+            # if np.random.rand() < 0.25:
+            #     sharpen_factor = 1 + np.random.rand()
+            #     kernel = np.array([[0, -1, 0], 
+            #                [-1, sharpen_factor,-1], 
+            #                [0, -1, 0]], dtype='float32')
+            #     img = cv2.filter2D(img, -1, kernel)
             if np.random.rand() < 0.25:            
                 img = cv2.convertScaleAbs(img, alpha=2.2, beta=np.random.randint(0,35))
         return img, label
@@ -126,3 +126,14 @@ class Preprocessor:
         label = label[:max_len]
         # put 0 padding values on the left, max_len - len(labels) padding values on the right
         return np.pad(label, (0,max_len - len(label)), mode='constant', constant_values=padding_value)
+    #Preprocessing of single image
+    # def single_image_preprocessing(self, img):
+    #     img = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
+    #     target_width, target_height = self.image_size
+    #     height, width = img.shape[:2]
+    #     ratio = min(target_width / width, target_height / height)
+    #     new_w, new_h = int(width * ratio), int(height * ratio)
+    #     img = cv2.resize(img, (new_w, new_h))
+
+
+
