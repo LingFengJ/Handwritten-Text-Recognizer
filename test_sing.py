@@ -7,10 +7,10 @@ from os.path import isfile, join
 from preprocessor import Preprocessor
 
 # Set the path to your folder containing images
-preprocessor = Preprocessor((512, 64))
+preprocessor = Preprocessor(image=None, vocab="", augmentation=False)
 
 # Set the path to your folder containing images
-mypath = "/Users/user/Desktop/ai_proj/Handwritten-Text-Recognizer/data/iam_sentences/dataset/"
+mypath = "data/iam_sentences/dataset"
 
 # Get all image files in the folder
 image_files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
@@ -35,15 +35,18 @@ for ax, image_file in zip(axes, image_files):
     image_path = join(mypath, image_file)
 
     # Read the image
-    img = plt.imread(image_path)
+    # img = plt.imread(image_path)
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
 
     # Apply preprocessing to resize the image
     img = preprocessor.single_image_preprocessing(img)
 
-    # Display the preprocessed image in the subplot
-    ax.imshow(img)
-    ax.axis('on')  # Hide axis ticks and labels
+    # ax.imshow(img, cmap='gray')
+    # ax.axis('on')  # Hide axis ticks and labels
+    cv2.imshow("imges", img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 # Show the plot with the preprocessed images
 # plt.tight_layout()  # Ensure plots don't overlap
-plt.show()
+# plt.show()
