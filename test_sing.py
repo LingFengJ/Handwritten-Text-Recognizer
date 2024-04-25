@@ -10,7 +10,7 @@ from preprocessor import Preprocessor
 preprocessor = Preprocessor((512, 64))
 
 # Set the path to your folder containing images
-mypath = "/Users/user/Desktop/ai_proj/Handwritten-Text-Recognizer/data/iam_sentences/dataset/"
+mypath = "data/iam_sentences/dataset"
 
 # Get all image files in the folder
 image_files = [f for f in listdir(mypath) if isfile(join(mypath, f))]
