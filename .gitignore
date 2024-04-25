@@ -13,7 +13,7 @@ data/**
 runs/
 __pycache__/
 
-
+/Model/model.pt
 
 # Default ignored files
 /shelf/
