@@ -127,13 +127,19 @@ class Preprocessor:
         # put 0 padding values on the left, max_len - len(labels) padding values on the right
         return np.pad(label, (0,max_len - len(label)), mode='constant', constant_values=padding_value)
     #Preprocessing of single image
-    # def single_image_preprocessing(self, img):
-    #     img = cv2.imread(img, cv2.IMREAD_GRAYSCALE)
-    #     target_width, target_height = self.image_size
-    #     height, width = img.shape[:2]
-    #     ratio = min(target_width / width, target_height / height)
-    #     new_w, new_h = int(width * ratio), int(height * ratio)
-    #     img = cv2.resize(img, (new_w, new_h))
+    def single_image_preprocessing(self, img):
+        target_width, target_height = self.image_size
+        height, width = img.shape[:2]
+        ratio = min(target_width / width, target_height / height)
+        new_w, new_h = int(width * ratio), int(height * ratio)
+        resized_image = cv2.resize(img, (new_w, new_h))
+        delta_w = target_width - new_w
+        delta_h =  target_height - new_h
+        top, bottom = delta_h//2, delta_h-(delta_h//2)
+        left, right = delta_w//2, delta_w-(delta_w//2)
+        padding_color = 0
+        img = cv2.copyMakeBorder(resized_image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=padding_color)
+        return img
 
 
 
