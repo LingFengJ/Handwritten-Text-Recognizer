@@ -5,8 +5,8 @@ import cv2
 import numpy as np
 from torchvision import transforms as transforms
 import typing
-# import torchvision
-# import torch
+import torchvision
+import torch
 
 
 
@@ -205,6 +205,7 @@ class Preprocessor:
         return np.pad(label, (0,max_len - len(label)), mode='constant', constant_values=padding_value)
     #Preprocessing of single image
     def single_image_preprocessing(self, img):
+
         target_width, target_height = self.image_size
         height, width = img.shape[:2]
         ratio = min(target_width / width, target_height / height)
@@ -216,6 +217,8 @@ class Preprocessor:
         left, right = delta_w//2, delta_w-(delta_w//2)
         padding_color = 0
         img = cv2.copyMakeBorder(resized_image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=padding_color)
+        img = torch.from_numpy(img).float()  # make it a tensor to enable it to be used by GPU
+        img = img / 255.0  # Normalize pixel values to [0, 1]
         return img
 
 
