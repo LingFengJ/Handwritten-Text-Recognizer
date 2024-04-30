@@ -5,8 +5,7 @@ import cv2
 import numpy as np
 from torchvision import transforms as transforms
 import typing
-# import torchvision
-# import torch
+import torch
 
 
 
@@ -16,8 +15,9 @@ class Preprocessor:
         self.transform = transform
         # self.image_size = (256, 32) 
         # self.image_size = (512, 64)
-        # self.image_size = (512, 64)
+        # self.image_size = (128, 36)
         self.image_size = (400, 32)
+        # self.image_size = (800, 64)
         # self.image_size = (1408, 96) ## an alternative for the image size(we'll see based on training results)
         self.augment = augmentation
         self.vocab = vocab
@@ -36,30 +36,30 @@ class Preprocessor:
             # img = cv2.Laplacian(img, cv2.CV_16S, ksize=3)
 
             # here we should apply randomsharpening, (randomnoise), randomblur, randombrightness
-            if np.random.rand() < 0.25:
-                # random_odd = np.random.randint(1,3) * 2 + 1
-                random_deviation = np.random.uniform(0, 1.5)
-                img = cv2.GaussianBlur(img, (0, 0), random_deviation)
+            # if np.random.rand() < 0.25:
+            #     # random_odd = np.random.randint(1,3) * 2 + 1
+            #     random_deviation = np.random.uniform(0, 1.5)
+            #     img = cv2.GaussianBlur(img, (0, 0), random_deviation)
 
-            if np.random.rand() < 0.25:
-                # brightness = np.random.randint(0,50)
-                # img = cv2.add(img, brightness)
-                delta = 100
-                if np.random.rand() < 0.5:
-                    value = 1 + np.random.uniform(-delta, delta) / 255
-                    # Convert grayscale image to BGR
-                    image_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-                    # Convert BGR image to HSV
-                    hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
-                    # Duplicate single channel across all three channels
-                    hsv[..., 1] = hsv[..., 1] * value
-                    hsv[..., 2] = hsv[..., 2] * value
-                    # Clip values to the range [0, 255]
-                    hsv = np.clip(hsv, 0, 255)
-                    # Convert HSV image back to BGR
-                    img_bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-                    # Convert BGR image to grayscale
-                    img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+            # if np.random.rand() < 0.25:
+            #     # brightness = np.random.randint(0,50)
+            #     # img = cv2.add(img, brightness)
+            #     delta = 100
+            #     if np.random.rand() < 0.5:
+            #         value = 1 + np.random.uniform(-delta, delta) / 255
+            #         # Convert grayscale image to BGR
+            #         image_bgr = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+            #         # Convert BGR image to HSV
+            #         hsv = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2HSV)
+            #         # Duplicate single channel across all three channels
+            #         hsv[..., 1] = hsv[..., 1] * value
+            #         hsv[..., 2] = hsv[..., 2] * value
+            #         # Clip values to the range [0, 255]
+            #         hsv = np.clip(hsv, 0, 255)
+            #         # Convert HSV image back to BGR
+            #         img_bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+            #         # Convert BGR image to grayscale
+            #         img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
 
             # if np.random.rand() < 0.25:
             #     # Convert the shear angle to radians
@@ -106,7 +106,7 @@ class Preprocessor:
                 # transforms.RandomAffine(degrees=(-3, 3), translate=(0, 0.2), scale=(0.9, 1),
                 #                         shear=5, resample=False, fillcolor=255),
                 transforms.RandomAffine(degrees=(-2, 2), translate=(0, 0), scale=(0.9, 1),
-                                        shear=5,fill=0),
+                                        shear=5,fill=255),
                 # transforms.RandomPerspective(distortion_scale=0.5, p=0.5, interpolation=3, fill=255)
             ]
             )
@@ -178,7 +178,7 @@ class Preprocessor:
         top, bottom = delta_h//2, delta_h-(delta_h//2)
         left, right = delta_w//2, delta_w-(delta_w//2)
 
-        padding_color = 0 # (0,0,0) if we are using rgb images
+        padding_color = 255 # (0,0,0) if we are using rgb images
 
         img = cv2.copyMakeBorder(resized_image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=padding_color)
 
@@ -203,6 +203,7 @@ class Preprocessor:
         label = label[:max_len]
         # put 0 padding values on the left, max_len - len(labels) padding values on the right
         return np.pad(label, (0,max_len - len(label)), mode='constant', constant_values=padding_value)
+    
     #Preprocessing of single image
     def single_image_preprocessing(self, img):
         target_width, target_height = self.image_size
@@ -214,8 +215,10 @@ class Preprocessor:
         delta_h =  target_height - new_h
         top, bottom = delta_h//2, delta_h-(delta_h//2)
         left, right = delta_w//2, delta_w-(delta_w//2)
-        padding_color = 0
+        padding_color = 255
         img = cv2.copyMakeBorder(resized_image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=padding_color)
+        img = torch.from_numpy(img).float() 
+        img = img / 255.0
         return img
 
 
