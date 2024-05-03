@@ -10,22 +10,39 @@ from torchmetrics.functional.text import char_error_rate as cer
 from torchmetrics.functional.text import word_error_rate as wer
 from itertools import groupby
 
-def label_to_strings(predictions, targets, chars):
+def label_to_strings(predictions, targets, vocab):
     # use argmax to find the index of the highest probability
     # shape of predictions: (seq_len, batch_size, num_classes)
     argmax_preds = np.argmax(predictions, axis=-1) # now the shape is (seq_len, batch_size)
-    # argmax_preds = np.argmax(predictions, axis=1)
-    
-    # transpose to get the shape (batch_size, seq_len) in order to get batch_size number of sequences
+
     # print('shape after taking argmax: ', argmax_preds.shape)
     grouped_preds = [[k for k,_ in groupby(preds)] for preds in argmax_preds]
-    # grouped_preds = [[k for k,_ in groupby(preds)] for preds in argmax_preds.T] 
 
-    # convert indexes to chars
-    texts = ["".join([chars[k] for k in group if k < len(chars)]) for group in grouped_preds]
-    target_texts = ["".join([chars[k] for k in group if k < len(chars)]) for group in targets]
+    # argmax_preds = torch.argmax(output, dim=-1)
+    # grouped_preds = [torch.unique_consecutive(preds) for preds in argmax_preds]
+
+    texts = ["".join([vocab[k] for k in group if k < len(vocab)]) for group in grouped_preds]
+    target_texts = ["".join([vocab[k] for k in group if k < len(vocab)]) for group in targets]
 
     return texts, target_texts
+
+def label_to_string2(pred, targets, vocab):
+   # Convert probability output to string
+    # alphabet = """_!?#&|\()[]<>*+,-.'"€$£$§=/⊥0123456789:;?ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzéèêâàù """
+    alphabet = vocab + "_"
+    cdict = {c: i for i, c in enumerate(alphabet)}
+    icdict = {i: c for i, c in enumerate(alphabet)}
+    tdec = pred.argmax(2).permute(1, 0).cpu().numpy().squeeze()
+    # print(tdec)
+    # print(tdec.ndim)
+    # Convert path to label, batch has size 1 here
+    target_strings = ["".join([vocab[k] for k in group if k < len(vocab)]) for group in targets]
+    if tdec.ndim == 0:
+        dec_transcr = ''.join([icdict[tdec.item()]]).replace('_', '')
+    else:
+        tt = [v for j, v in enumerate(tdec) if j == 0 or v != tdec[j - 1]]
+        dec_transcr = ''.join([icdict[t] for t in tt]).replace('_', '')
+    return dec_transcr
 
 # Metrics ------------------------------------------------------------------------------------------
 class Metric:
@@ -55,8 +72,8 @@ class CERMetric(Metric):
         y_pred = y_pred.detach().cpu().numpy()
         y_true = y_true.detach().cpu().numpy()
         y_pred, y_true = label_to_strings(y_pred, y_true, self.vocab)
-        print(f'y_pred: {y_pred} with shape: {len(y_pred)}')
-        print(f'y_true: {y_true} with shape: {len(y_true)}')
+        # print(f'y_pred: {y_pred} with shape: {len(y_pred)}')
+        # print(f'y_true: {y_true} with shape: {len(y_true)}')
         value = cer(y_true, y_pred)
         print(f'the cer value is: {value} with value: {value.item()}')
         self.total += value.item()
@@ -81,10 +98,6 @@ class WERMetric(Metric):
         self.total = 0
 
     def update(self, y_pred, y_true):
-        # Assuming y_pred and y_true are 1D tensors
-        # y_pred = y_pred.argmax(dim=1)
-        # wer = 1 - accuracy_score(y_true.numpy(), y_pred.numpy())
-        # self.values.append(wer)
         y_pred = y_pred.detach().cpu().numpy()
         y_true = y_true.detach().cpu().numpy()
         y_pred, y_true = label_to_strings(y_pred, y_true, self.vocab)
@@ -159,105 +172,3 @@ class TrainLogger(Callback):
 
     def close(self):
         self.file.close()
-    # trainLogger = TrainLogger(f"{model_path}/train_log.txt")
-    # trainLogger.step(loss.item(), {'CER': cer_metric.result(), 'WER': wer_metric.result()})
-    # trainLogger.close()
-
-
-def decoder(outputs, vocab):
-    # Example outputs tensor
-    # num_classes = 80
-        #outputs = torch.randn(32, 80,num_classes )  # Assuming num_classes is the number of output classes
-
-    # Convert logits to probabilities using softmax
-    probs = torch.softmax(outputs, dim=1)
-
-    # Apply CTC decoding
-    decoded_strings = []
-    for prob in probs:
-        # Take the argmax for each time step
-        predicted_labels = torch.argmax(prob, dim=1)
-        
-        # Convert labels to string using some mapping (e.g., index to character mapping)
-        predicted_string = ''.join([chr(label + ord('a')) for label in predicted_labels])
-        
-        # Remove duplicate characters and blank symbols
-        final_string = ''
-        prev_char = ''
-        for char in predicted_string:
-            if char != prev_char and char != ' ':
-                final_string += char
-            prev_char = char
-        
-        decoded_strings.append(final_string)
-    return decoded_strings
-
-
-
-
-
-class CTCLoss(nn.Module):
-    def __init__(self, blank: int, reduction: str="mean", zero_infinity: bool=False):
-        """
-        Args:
-            blank: Index of the blank label
-        """
-        super(CTCLoss, self).__init__()
-        self.ctc_loss = nn.CTCLoss(blank=blank, reduction=reduction, zero_infinity=zero_infinity)
-        self.blank = blank
-
-    def forward(self, output, target):
-        """
-        Args:
-            output: Tensor of shape (batch_size, num_classes, sequence_length)
-            target: Tensor of shape (batch_size, sequence_length)
-            
-        Returns:
-            loss: Scalar
-        """
-        # Remove padding and blank tokens from target
-        target_lengths = torch.sum(target != self.blank, dim=1)
-        using_dtype = torch.int32 if max(target_lengths) <= 256 else torch.int64
-        device = output.device
-
-        target_unpadded = target[target != self.blank].view(-1).to(using_dtype)
-
-        output = output.permute(1, 0, 2)  # (sequence_length, batch_size, num_classes)
-        output_lengths = torch.full(size=(output.size(1),), fill_value=output.size(0), dtype=using_dtype).to(device)
-
-        loss = self.ctc_loss(output, target_unpadded, output_lengths, target_lengths.to(using_dtype))
-
-        return loss
-    
-
-
-def decode_ctc(outputs, chars, blank_index):
-    # Take the argmax over the channel dimension to get the predicted character indexes
-    predicted_indexes = outputs.argmax(dim=-1)
-
-    predicted_indexes = predicted_indexes.tolist()
-
-    decoded_strings = []
-
-    # for sequence in predicted_indexes:
-    #     # Remove repeated characters and blank tokens
-    #     sequence = [index for index, _ in groupby(sequence) if index != blank_index]
-
-    #     # Decode the sequence into a string
-    #     decoded_string = ''.join([chars[index] for index in sequence])
-
-    #     decoded_strings.append(decoded_string)
-
-    # return decoded_strings
-        # For each batch in the sequence
-    for batch in zip(*predicted_indexes):
-        # Remove repeated characters and blank tokens
-        batch = [index for index, _ in groupby(batch) if index != blank_index]
-
-        # Decode the sequence into a string
-        decoded_string = ''.join([chars[index] for index in batch])
-
-        # Add the decoded string to the list of decoded strings
-        decoded_strings.append(decoded_string)
-
-    return decoded_strings
