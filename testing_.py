@@ -13,18 +13,9 @@ from torchvision.transforms import Compose, Grayscale
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-# import custom modules 
-from preprocessor import Preprocessor
 from data_loader import HandwritingDataset
 
-# import various models to test
-from model import Model as Model
 from model1 import Model as Model1
-# from model2 import Network as Model2
-# from model420 import Model as Model420
-# from model_net import Network as ModelNet
-# from crnn import CRNN
-# from model3 import ImageToWordModel as Model3
 
 # Import modules and fucntions 
 import torch.nn as nn
@@ -132,14 +123,6 @@ def test():
     state_dict = torch.load(path, torch.device(device))
     model.load_state_dict(state_dict)
     model.eval()
-
-    # state_dict = torch.load('C:/Users/gioia.zheng/Desktop/ACSAI/AI_lab/Handwritten-Text-Recognizer/Results/2024-04-23-20-52/model.pt', map_location=torch.device(device))
-    # model.load_state_dict(state_dict)
-
-    # model = ModelNet(output_dimension)
-    # state_dict = torch.load('model01.pt', map_location=torch.device('cpu'))
-    # model.load_state_dict(state_dict)
-    # model.eval()
 
     tensorboard = SummaryWriter(f"{model_path}/logs")
 
