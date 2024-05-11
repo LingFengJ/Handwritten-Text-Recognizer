@@ -32,6 +32,7 @@ from utils import label_to_strings
 from torchmetrics.text import CharErrorRate 
 from torchmetrics.text import WordErrorRate
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import MultiStepLR
 
 def set_device():
   """
@@ -116,7 +117,7 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
         model.load_state_dict(state_dict)
         model = model.to(device)
         # learning_rate = 0.0004
-        learning_rate = 9e-05
+        learning_rate = 3e-5
     else: 
         #crnn = net_init()
         # print(crnn)
@@ -126,14 +127,16 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
         model = Model1(input_dimension, output_dimension, activation="leaky_relu", dropout=0.2)
         # model = Model2(num_chars=len(vocab), activation="leaky_relu", dropout=0.2)
         # model = Model3(input_dim=input_dimension, output_dim=output_dimension, activation="leaky_relu", dropout=0.2)
-        learning_rate = 0.0005
+        # learning_rate = 0.0005
+        learning_rate = 3e-4  ## Andrej Karpathy said: "3e-4 is the best learning rate for Adam, hands down.""
 
     blank = len(vocab)
     print(f'blank token: {blank}')
     criterion = CTCLoss(blank=len(vocab), reduction='mean', zero_infinity=True)
-    # criterion = criterion.to(device)
-    # optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
+    # criterion = criterion.to(device)    
+
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # optimizer = optim.RMSprop(model.parameters(), lr=learning_rate)
     model_path = os.path.join("Results", datetime.strftime(datetime.now(), "%Y-%m-%d-%H-%M"))
     model = model.to(device)
 
@@ -145,7 +148,9 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
     earlystopper = EarlyStopping(patience=20)
     checkpoint = ModelCheckpoint(model, f"{model_path}/model.pt")
     tensorboard = SummaryWriter(f"{model_path}/logs")
-    LR_reducer = ReduceLROnPlateau(optimizer, factor=0.5, min_lr=1e-10, patience=5, mode="min")
+
+    LR_reducer = MultiStepLR(optimizer, [i * (int)(11266/64 + 1) for i in (100, 250)] )  # 11266 is number of images in the training set
+    # LR_reducer = ReduceLROnPlateau(optimizer, factor=0.5, min_lr=1e-10, patience=5, mode="min")
 
     # Train the model
     # per_epoch = 100 # print one prediction per 50 iteration to see the progress
@@ -154,6 +159,7 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
     for epoch in tqdm(range(train_epochs)):
         per_epoch = True
         trial = False
+        average_loss = 0
         model.train(True) # Set the model to training mode
         for i, (inputs, targets) in tqdm(enumerate(train_loader)):
         # for inputs, targets in tqdm(train_loader):
@@ -216,6 +222,7 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
 
             loss.backward()
             optimizer.step()
+            LR_reducer.step()
 
             if device == "cuda":
                 torch.cuda.synchronize()
@@ -230,15 +237,18 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
             # tb_callback.add_scalar('WER/train', wer_metric.compute(), i)
             # print(f'cer_metric: {cer_metric.compute()}')
 
-            tensorboard.add_scalar('Loss/train', loss.item(), epoch)
+            average_loss += loss.item()
+            # tensorboard.add_scalar('Loss/train', loss.item(), epoch)
             tensorboard.add_scalar('CER/train', cer_metric.compute(), epoch)
             tensorboard.add_scalar('WER/train', wer_metric.compute(), epoch)
         # tempfile.close()
 
+        average_loss /= (i+1)
+        tensorboard.add_scalar('Loss/train', average_loss, epoch)
         # Reset metrics for each epoch
         cer_metric.reset()
         wer_metric.reset()
-
+        average_loss = 0
         # Validation
         model.eval()
         with torch.no_grad():
@@ -276,7 +286,8 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
                 # tb_callback.add_scalar('CER/val', cer_metric.compute(), i)
                 # tb_callback.add_scalar('WER/val', wer_metric.compute(), i)
 
-                tensorboard.add_scalar('Loss/val', loss.item(), epoch)
+                average_loss += loss.item()
+                # tensorboard.add_scalar('Loss/val', loss.item(), epoch)
                 tensorboard.add_scalar('CER/val', cer_metric.compute(), epoch)
                 tensorboard.add_scalar('WER/val', wer_metric.compute(), epoch)
 
@@ -292,6 +303,8 @@ def train_model(train_loader, val_loader, test_loader, vocab, max_len, device = 
             break
         # trainLogger.step(cer_metric.result())
 
+        average_loss /= (i+1)
+        tensorboard.add_scalar('Loss/val', average_loss, epoch)
         # Reset metrics
         cer_metric.reset()
         wer_metric.reset()
@@ -348,7 +361,7 @@ def main():
 
 
     # We will use cross validation 
-    cross_validation = True
+    cross_validation = False
     n_splits = 5
     kf = KFold(n_splits=n_splits, shuffle=True, random_state=seed)
     if cross_validation:
@@ -387,12 +400,14 @@ def main():
         val_dataset = HandwritingDataset(val_data, vocab, max_len, augmentations=False)
         test_dataset = HandwritingDataset(test_data, vocab, max_len, augmentations=False)
 
+        print(f'length of training dataset : {len(train_dataset)}')
+
         # Create data loaders
         train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=4)
         val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False, num_workers = 4)
         test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
         print("len of loaders:",train_loader.__len__(), val_loader.__len__(), test_loader.__len__())
-        train_model(train_loader, val_loader, test_loader, vocab, max_len, device=device, train_epochs=600)
+        train_model(train_loader, val_loader, test_loader, vocab, max_len, device=device, train_epochs=500)
 
     def testing_images():
     #--------------------------testing--------------------------------
