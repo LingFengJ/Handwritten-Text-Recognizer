@@ -7,7 +7,7 @@ class ResidualBlock(nn.Module):
     # this repository on CRNN: https://github.com/meijieru/crnn.pytorch/blob/master/README.md
     # this tutorial based on tensorflow keras: https://pylessons.com/handwritten-sentence-recognition
     def __init__(self, in_channels, out_channels, activation='relu', skip_conv=True, stride=2, dropout=0.2):
-        super(ResidualBlock, self).__init__()
+        super().__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
@@ -16,7 +16,7 @@ class ResidualBlock(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.skip_conv = skip_conv
         if skip_conv:
-            self.conv_skip = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=False)
+            self.conv_skip = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=stride, bias=True)
             self.bn_skip = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
@@ -44,7 +44,7 @@ class Model(nn.Module):
     def __init__(self, input_dim, output_dim, activation="leaky_relu", dropout=0.2):
         # input dimension: number of channels of the input image
         # output dimension: length of the vocabulary + 1 (for the CTC blank token)
-        super(Model, self).__init__()
+        super().__init__()
         self.layer1 = ResidualBlock(input_dim, 32, activation, True, 1, dropout)
         self.layer2 = ResidualBlock(32, 32, activation, True, 2, dropout)
         self.layer3 = ResidualBlock(32, 32, activation, False, 1, dropout)
@@ -55,16 +55,20 @@ class Model(nn.Module):
         self.layer8 = ResidualBlock(128, 128, activation, True, 2, dropout)
         self.layer9 = ResidualBlock(128, 128, activation, False, 1, dropout)
 
+        # self.layer10 = ResidualBlock(128, 256, activation, True, 2, dropout)
+        # self.layer11 = ResidualBlock(256, 256, activation, False, 1, dropout)
+
         self.blstm1 = nn.LSTM(128, 256, bidirectional=True, batch_first=True)
         self.dropout1 = nn.Dropout(dropout)
         self.blstm2 = nn.LSTM(256*2, 64, bidirectional=True, batch_first=True)
         self.dropout2 = nn.Dropout(dropout)
         self.fc = nn.Linear(64*2, output_dim + 1)
-        # self.blstm1 = nn.LSTM(256, 256, bidirectional=True)
+
+        # self.blstm1 = nn.LSTM(256, 512, bidirectional=True)
         # self.dropout1 = nn.Dropout(dropout)
-        # self.blstm2 = nn.LSTM(256, 64, bidirectional=True)
+        # self.blstm2 = nn.LSTM(512*2, 128, bidirectional=True)
         # self.dropout2 = nn.Dropout(dropout)
-        # self.fc = nn.Linear(128, output_dim + 1)
+        # self.fc = nn.Linear(128*2, output_dim + 1)
 
     def forward(self, x):
         x = self.layer1(x)
@@ -76,6 +80,9 @@ class Model(nn.Module):
         x = self.layer7(x)
         x = self.layer8(x)
         x = self.layer9(x)
+
+        # x = self.layer10(x)
+        # x = self.layer11(x)
 
         x = x.reshape(x.size(0), -1, x.size(1)) # (batch, channels, height, width) -> (batch, width*height, channels)
 
