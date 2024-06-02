@@ -60,6 +60,10 @@ nav ul li a:hover {
     text-align: center;
 }
 
+.cont_pudding{
+    width:100%;
+    padding-bottom: 20%;
+}
 /* Heading and paragraph styles */
 h1 {
     color: #333;
@@ -182,4 +186,9 @@ input[type="file"] {
 /* Hover effect for convert button */
 #convert-btn:hover {
     background-color: #218838;
+}
+
+/* CSS styles for video element */
+video {
+    transform: scaleX(-1); /* Flip video horizontally */
 }
