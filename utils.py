@@ -154,21 +154,4 @@ class ModelCheckpoint(Callback):
             self.best_score = metric_result
             torch.save(self.model.state_dict(), self.filepath)
 
-class ReduceLROnPlateauPyTorch(Callback):
-    def __init__(self, optimizer, factor, patience):
-        self.scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=factor, patience=patience, verbose=True)
 
-    def step(self, metric_result):
-        self.scheduler.step(metric_result)
-
-
-class TrainLogger(Callback):
-    def __init__(self, filepath):
-        self.filepath = filepath
-        self.file = open(filepath, 'w')
-
-    def step(self, loss, metrics):
-        self.file.write(f"Loss: {loss}, Metrics: {metrics}\n")
-
-    def close(self):
-        self.file.close()
