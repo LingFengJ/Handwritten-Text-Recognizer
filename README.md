@@ -52,9 +52,18 @@ tensorboard --logdir=path/to/Handwritten-Text-Recognizer/Results
 ```
 The ***Character Error Rate***(CER) and ***Word Error Rate***(WER) will be visible on <a href="http://localhost:6006/">Tensorboard </a>
 
+## Features
+A [short presentation](https://www.canva.com/design/DAGHiM322vs/zk8GCeYG0vYzkjkzjOjKWA/watch?utm_content=DAGHiM322vs&utm_campaign=designshare&utm_medium=link&utm_source=editor) about the project
+<br>
+![image](https://github.com/user-attachments/assets/795d2061-3b1c-44aa-85fe-60e8c60a960a)
+
+
+
+
 ## Authors
-  We are bachelor students of Applied Computer Science and Artificial Intelligence at the Sapienza University of Rome. 
-  The given project is designed for fullfill exam requirements of the course "AI Lab: Computer Vision and NLP"
+  We are a group of bachelor students of Applied Computer Science and Artificial Intelligence at the Sapienza University of Rome. 
+  The Handwritten-Text-Recognizer is a project that belongs to our academic curriculum - it is designed for fullfill exam requirements of the examination "AI Lab: Computer Vision and NLP". <br>
+  The process is stimulating and we benefited a lot by tackling challenges in sequential learning and deep neural network architecture design. For any clarification or further information regarding the project, please fell free to reach out to us.
 - Lingfeng Jin
 - Abduazizkhon Shomansurov
 - Liyu Jin
@@ -64,4 +73,4 @@ The ***Character Error Rate***(CER) and ***Word Error Rate***(WER) will be visib
 Handwritten-Text-Recogniser is released under [MIT License](./LICENSE)
 
 
-To see our presentation about the project: https://www.canva.com/design/DAGHiM322vs/zk8GCeYG0vYzkjkzjOjKWA/watch?utm_content=DAGHiM322vs&utm_campaign=designshare&utm_medium=link&utm_source=editor
+
